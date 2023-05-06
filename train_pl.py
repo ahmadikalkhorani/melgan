@@ -228,7 +228,7 @@ class AudioVisualModel(pl.LightningModule):
             writer.add_audio('train_aud/pred', x_pred_t[0].reshape(-1, 1), global_step=step, sample_rate=16000)
             writer.add_audio('train_aud/target', x_t[0].reshape(-1, 1), global_step=step, sample_rate=16000)
 
-            fig, AX = plt.subplots(3, min(s_t.shape[0]+1, 2), figsize = (12, 12), sharex=True, sharey=True)
+            fig, AX = plt.subplots(3, min(s_t.shape[0]+1, 2), figsize = (12, 8), sharex=True, sharey=True)
             
             for i in range(min(s_t.shape[0], 2)):
                 AX[0, i].imshow(s_t[i].detach().cpu(), aspect="auto", origin='lower')
