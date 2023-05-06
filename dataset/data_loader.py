@@ -604,8 +604,10 @@ class SingleChannelAVSpeech():
         }
 
         self.len = {
-            'tr': len(self.clip_list["tr"]),
-            'cv': min(3000, len(self.clip_list["cv"])),
+            # 'tr': len(self.clip_list["tr"]),
+            # 'cv': min(3000, len(self.clip_list["cv"])),
+             'tr': 100,
+            'cv': 100,
             # 'tt': min(3000, len(self.clip_list["tt"])),
         }
 
