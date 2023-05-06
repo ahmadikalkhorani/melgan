@@ -50,6 +50,7 @@ class Audio2Mel(nn.Module):
         self.win_length = win_length
         self.sampling_rate = sampling_rate
         self.n_mel_channels = n_mel_channels
+        
 
     def forward(self, audio):
         p = (self.n_fft - self.hop_length) // 2
@@ -66,6 +67,8 @@ class Audio2Mel(nn.Module):
         magnitude = torch.sqrt(real_part ** 2 + imag_part ** 2)
         mel_output = torch.matmul(self.mel_basis, magnitude)
         log_mel_spec = torch.log10(torch.clamp(mel_output, min=1e-5))
+        
+     
         return log_mel_spec
 
 

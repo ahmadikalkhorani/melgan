@@ -1,0 +1,447 @@
+/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/utilities/seed.py:48: LightningDeprecationWarning: `pytorch_lightning.utilities.seed.seed_everything` has been deprecated in v1.8.0 and will be removed in v1.10.0. Please use `lightning_lite.utilities.seed.seed_everything` instead.
+  rank_zero_deprecation(
+Global seed set to 0
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+/scratch/vahid/melgan/mel2wav/modules.py:42: FutureWarning: Pass sr=22050, n_fft=1024, n_mels=80, fmin=0.0, fmax=None as keyword args. From version 0.10 passing these as positional arguments will result in an error
+  mel_basis = librosa_mel_fn(
+/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/checkpoint_connector.py:175: UserWarning: .fit(ckpt_path="last") is set, but there is no fault tolerant or last checkpoint available. No checkpoint will be loaded.
+  rank_zero_warn(
+/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/utilities.py:94: PossibleUserWarning: `max_epochs` was not set. Setting it to 1000 epochs. To train without an epoch limit, set `max_epochs=-1`.
+  rank_zero_warn(
+[rank: 0] Global seed set to 0
+Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/2
+[rank: 1] Global seed set to 0
+/scratch/vahid/melgan/mel2wav/modules.py:42: FutureWarning: Pass sr=22050, n_fft=1024, n_mels=80, fmin=0.0, fmax=None as keyword args. From version 0.10 passing these as positional arguments will result in an error
+  mel_basis = librosa_mel_fn(
+[rank: 1] Global seed set to 0
+Initializing distributed: GLOBAL_RANK: 1, MEMBER: 2/2
+----------------------------------------------------------------------------------------------------
+distributed_backend=nccl
+All distributed processes registered. Starting with 2 processes
+----------------------------------------------------------------------------------------------------
+
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,2]
+LOCAL_RANK: 1 - CUDA_VISIBLE_DEVICES: [0,2]
+
+  | Name | Type          | Params
+---------------------------------------
+0 | netD | Discriminator | 16.9 M
+1 | fft  | Sequential    | 0     
+2 | netG | Sequential    | 4.3 M 
+---------------------------------------
+21.2 M    Trainable params
+0         Non-trainable params
+21.2 M    Total params
+84.761    Total estimated model params size (MB)
+CUDA is Available:  True
+Sequential(
+  (0): Generator(
+    (model): Sequential(
+      (0): ReflectionPad1d((3, 3))
+      (1): Conv1d(80, 512, kernel_size=(7,), stride=(1,))
+      (2): LeakyReLU(negative_slope=0.2)
+      (3): ConvTranspose1d(512, 256, kernel_size=(16,), stride=(8,), padding=(4,))
+      (4): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((1, 1))
+          (2): Conv1d(256, 256, kernel_size=(3,), stride=(1,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+      )
+      (5): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((3, 3))
+          (2): Conv1d(256, 256, kernel_size=(3,), stride=(1,), dilation=(3,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+      )
+      (6): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((9, 9))
+          (2): Conv1d(256, 256, kernel_size=(3,), stride=(1,), dilation=(9,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+      )
+      (7): LeakyReLU(negative_slope=0.2)
+      (8): ConvTranspose1d(256, 128, kernel_size=(16,), stride=(8,), padding=(4,))
+      (9): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((1, 1))
+          (2): Conv1d(128, 128, kernel_size=(3,), stride=(1,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+      )
+      (10): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((3, 3))
+          (2): Conv1d(128, 128, kernel_size=(3,), stride=(1,), dilation=(3,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+      )
+      (11): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((9, 9))
+          (2): Conv1d(128, 128, kernel_size=(3,), stride=(1,), dilation=(9,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+      )
+      (12): LeakyReLU(negative_slope=0.2)
+      (13): ConvTranspose1d(128, 64, kernel_size=(4,), stride=(2,), padding=(1,))
+      (14): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((1, 1))
+          (2): Conv1d(64, 64, kernel_size=(3,), stride=(1,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+      )
+      (15): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((3, 3))
+          (2): Conv1d(64, 64, kernel_size=(3,), stride=(1,), dilation=(3,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+      )
+      (16): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((9, 9))
+          (2): Conv1d(64, 64, kernel_size=(3,), stride=(1,), dilation=(9,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+      )
+      (17): LeakyReLU(negative_slope=0.2)
+      (18): ConvTranspose1d(64, 32, kernel_size=(4,), stride=(2,), padding=(1,))
+      (19): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((1, 1))
+          (2): Conv1d(32, 32, kernel_size=(3,), stride=(1,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+      )
+      (20): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((3, 3))
+          (2): Conv1d(32, 32, kernel_size=(3,), stride=(1,), dilation=(3,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+      )
+      (21): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((9, 9))
+          (2): Conv1d(32, 32, kernel_size=(3,), stride=(1,), dilation=(9,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+      )
+      (22): LeakyReLU(negative_slope=0.2)
+      (23): ReflectionPad1d((3, 3))
+      (24): Conv1d(32, 1, kernel_size=(7,), stride=(1,))
+      (25): Tanh()
+    )
+  )
+  (1): Resample()
+)
+Sanity Checking: 0it [00:00, ?it/s]CUDA is Available:  True
+Sequential(
+  (0): Generator(
+    (model): Sequential(
+      (0): ReflectionPad1d((3, 3))
+      (1): Conv1d(80, 512, kernel_size=(7,), stride=(1,))
+      (2): LeakyReLU(negative_slope=0.2)
+      (3): ConvTranspose1d(512, 256, kernel_size=(16,), stride=(8,), padding=(4,))
+      (4): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((1, 1))
+          (2): Conv1d(256, 256, kernel_size=(3,), stride=(1,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+      )
+      (5): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((3, 3))
+          (2): Conv1d(256, 256, kernel_size=(3,), stride=(1,), dilation=(3,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+      )
+      (6): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((9, 9))
+          (2): Conv1d(256, 256, kernel_size=(3,), stride=(1,), dilation=(9,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+      )
+      (7): LeakyReLU(negative_slope=0.2)
+      (8): ConvTranspose1d(256, 128, kernel_size=(16,), stride=(8,), padding=(4,))
+      (9): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((1, 1))
+          (2): Conv1d(128, 128, kernel_size=(3,), stride=(1,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+      )
+      (10): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((3, 3))
+          (2): Conv1d(128, 128, kernel_size=(3,), stride=(1,), dilation=(3,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+      )
+      (11): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((9, 9))
+          (2): Conv1d(128, 128, kernel_size=(3,), stride=(1,), dilation=(9,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+      )
+      (12): LeakyReLU(negative_slope=0.2)
+      (13): ConvTranspose1d(128, 64, kernel_size=(4,), stride=(2,), padding=(1,))
+      (14): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((1, 1))
+          (2): Conv1d(64, 64, kernel_size=(3,), stride=(1,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+      )
+      (15): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((3, 3))
+          (2): Conv1d(64, 64, kernel_size=(3,), stride=(1,), dilation=(3,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+      )
+      (16): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((9, 9))
+          (2): Conv1d(64, 64, kernel_size=(3,), stride=(1,), dilation=(9,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(64, 64, kernel_size=(1,), stride=(1,))
+      )
+      (17): LeakyReLU(negative_slope=0.2)
+      (18): ConvTranspose1d(64, 32, kernel_size=(4,), stride=(2,), padding=(1,))
+      (19): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((1, 1))
+          (2): Conv1d(32, 32, kernel_size=(3,), stride=(1,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+      )
+      (20): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((3, 3))
+          (2): Conv1d(32, 32, kernel_size=(3,), stride=(1,), dilation=(3,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+      )
+      (21): ResnetBlock(
+        (block): Sequential(
+          (0): LeakyReLU(negative_slope=0.2)
+          (1): ReflectionPad1d((9, 9))
+          (2): Conv1d(32, 32, kernel_size=(3,), stride=(1,), dilation=(9,))
+          (3): LeakyReLU(negative_slope=0.2)
+          (4): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+        )
+        (shortcut): Conv1d(32, 32, kernel_size=(1,), stride=(1,))
+      )
+      (22): LeakyReLU(negative_slope=0.2)
+      (23): ReflectionPad1d((3, 3))
+      (24): Conv1d(32, 1, kernel_size=(7,), stride=(1,))
+      (25): Tanh()
+    )
+  )
+  (1): Resample()
+)
+Sanity Checking:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:  50%|█████     | 1/2 [00:00<00:00, 251.28it/s]Sanity Checking DataLoader 0: 100%|██████████| 2/2 [00:05<00:00,  2.67s/it]                                                                            Training: 0it [00:00, ?it/s]Training:   0%|          | 0/10110 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/10110 [00:00<?, ?it/s] Traceback (most recent call last):
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/call.py", line 38, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 624, in _fit_impl
+    self._run(model, ckpt_path=self.ckpt_path)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1061, in _run
+    results = self._run_stage()
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1140, in _run_stage
+    self._run_train()
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1163, in _run_train
+    self.fit_loop.run()
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/fit_loop.py", line 267, in advance
+    self._outputs = self.epoch_loop.run(self._data_fetcher)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/epoch/training_epoch_loop.py", line 214, in advance
+    batch_output = self.batch_loop.run(kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/batch/training_batch_loop.py", line 90, in advance
+    outputs = self.manual_loop.run(kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/manual_loop.py", line 110, in advance
+    training_step_output = self.trainer._call_strategy_hook("training_step", *kwargs.values())
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1443, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/strategies/ddp.py", line 352, in training_step
+    return self.model(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1040, in forward
+    output = self._run_ddp_forward(*inputs, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1000, in _run_ddp_forward
+    return module_to_run(*inputs[0], **kwargs[0])
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/overrides/base.py", line 98, in forward
+    output = self._forward_module.training_step(*inputs, **kwargs)
+  File "/scratch/vahid/melgan/train_pl.py", line 153, in training_step
+    s_t = self.fft(x_t).detach()
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/container.py", line 204, in forward
+    input = module(input)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torchaudio/transforms/_transforms.py", line 1002, in forward
+    return _apply_sinc_resample_kernel(waveform, self.orig_freq, self.new_freq, self.gcd, self.kernel, self.width)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torchaudio/functional/functional.py", line 1536, in _apply_sinc_resample_kernel
+    resampled = torch.nn.functional.conv1d(waveform[:, None], kernel, stride=orig_freq)
+RuntimeError: cuDNN error: CUDNN_STATUS_NOT_INITIALIZED
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/vahid/melgan/train_pl.py", line 390, in <module>
+    main(args)
+  File "/scratch/vahid/melgan/train_pl.py", line 373, in main
+    trainer.fit( model, ckpt_path = args.ckpt_path )
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 582, in fit
+    call._call_and_handle_interrupt(
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/call.py", line 59, in _call_and_handle_interrupt
+    trainer.strategy.reconciliate_processes(traceback.format_exc())
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/strategies/ddp.py", line 461, in reconciliate_processes
+    raise DeadlockDetectedException(f"DeadLock detected from rank: {self.global_rank} \n {trace}")
+pytorch_lightning.utilities.exceptions.DeadlockDetectedException: DeadLock detected from rank: 1 
+ Traceback (most recent call last):
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/call.py", line 38, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 624, in _fit_impl
+    self._run(model, ckpt_path=self.ckpt_path)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1061, in _run
+    results = self._run_stage()
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1140, in _run_stage
+    self._run_train()
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1163, in _run_train
+    self.fit_loop.run()
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/fit_loop.py", line 267, in advance
+    self._outputs = self.epoch_loop.run(self._data_fetcher)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/epoch/training_epoch_loop.py", line 214, in advance
+    batch_output = self.batch_loop.run(kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/batch/training_batch_loop.py", line 90, in advance
+    outputs = self.manual_loop.run(kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/manual_loop.py", line 110, in advance
+    training_step_output = self.trainer._call_strategy_hook("training_step", *kwargs.values())
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1443, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/strategies/ddp.py", line 352, in training_step
+    return self.model(*args, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1040, in forward
+    output = self._run_ddp_forward(*inputs, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1000, in _run_ddp_forward
+    return module_to_run(*inputs[0], **kwargs[0])
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/pytorch_lightning/overrides/base.py", line 98, in forward
+    output = self._forward_module.training_step(*inputs, **kwargs)
+  File "/scratch/vahid/melgan/train_pl.py", line 153, in training_step
+    s_t = self.fft(x_t).detach()
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/container.py", line 204, in forward
+    input = module(input)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torchaudio/transforms/_transforms.py", line 1002, in forward
+    return _apply_sinc_resample_kernel(waveform, self.orig_freq, self.new_freq, self.gcd, self.kernel, self.width)
+  File "/home/ahmadikalkhorani.1/anaconda3/envs/deepcasa/lib/python3.8/site-packages/torchaudio/functional/functional.py", line 1536, in _apply_sinc_resample_kernel
+    resampled = torch.nn.functional.conv1d(waveform[:, None], kernel, stride=orig_freq)
+RuntimeError: cuDNN error: CUDNN_STATUS_NOT_INITIALIZED
+
+run.sh: line 1: 21436 Killed                  CUDA_VISIBLE_DEVICES=0,2 python train_pl.py
