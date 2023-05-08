@@ -604,10 +604,10 @@ class SingleChannelAVSpeech():
         }
 
         self.len = {
-            # 'tr': len(self.clip_list["tr"]),
-            # 'cv': min(3000, len(self.clip_list["cv"])),
-             'tr': 100,
-            'cv': 100,
+            'tr': len(self.clip_list["tr"]),
+            'cv': min(3000, len(self.clip_list["cv"])),
+            #  'tr': 100,
+            # 'cv': 100,
             # 'tt': min(3000, len(self.clip_list["tt"])),
         }
 
@@ -1305,8 +1305,7 @@ class AudioVisualDataModule(pl.LightningDataModule):
         parser.add_argument("--batch_size", type=int, default=16)
         parser.add_argument("--duration", type=float, default=3.0)
         parser.add_argument("--sampling_rate", type=int, default=16000)
-        parser.add_argument("--num_dataset_workers",
-                            type=int, default=os.cpu_count())
+        parser.add_argument("--num_dataset_workers",type=int, default=os.cpu_count())
         parser.add_argument("--dynamic_mixing", type=str2bool, default='True')
         parser.add_argument("--add_noise", type=str2bool, default='False')
         parser.add_argument("--moving_source", type=str2bool, default='False')

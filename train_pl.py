@@ -61,6 +61,9 @@ class SpeechMetrics:
         }
 
     def __call__(self, preds, target):
+        
+        preds = preds/torch.max(torch.abs(preds), dim = -1)[0].unsqueeze(-1)
+        target = target/torch.max(torch.abs(target), dim = -1)[0].unsqueeze(-1)
 
         results = {}
         for name, metric in self.metrics.items():
@@ -102,6 +105,8 @@ class AudioVisualModel(pl.LightningModule):
         print(self.netG)
 
         self.metrics = SpeechMetrics(sampling_rate=args.sampling_rate)
+        
+        self.logger_step = 0
 
 
 
@@ -177,7 +182,7 @@ class AudioVisualModel(pl.LightningModule):
         s_t = self.fft(x_t).detach()
 
         # Ideal Binary Mask
-        ibm = torch.sign(s_t+1)
+        ibm = torch.sign(s_t+1) # anything larget than -1 is +1 else 0
         x_pred_t = self.netG(ibm)
 
         with torch.no_grad():
@@ -187,6 +192,9 @@ class AudioVisualModel(pl.LightningModule):
         N = min(x_pred_t.shape[-1], x_t.shape[-1])
         x_t = x_t[..., :N]
         x_pred_t = x_pred_t[..., :N]
+        
+        # x_t = 0.9 * x_t / x_t.max(dim = -1, keepdim = True)[0]
+        # x_pred_t = 0.9 * x_pred_t / x_pred_t.max(dim = -1, keepdim = True)[0]
         #######################
         # Train Discriminator #
         #######################
@@ -196,11 +204,13 @@ class AudioVisualModel(pl.LightningModule):
         D_real = self.netD(x_t)
 
         loss_D = 0
-        for scale in D_fake_det:
-            loss_D += F.relu(1 + scale[-1]).mean()
+        # L_{D} = -\mathbb{E}_{\left(x, y\right)\sim{p}_{data}}\left[\min\left(0, -1 + D\left(x, y\right)\right)\right] -\mathbb{E}_{z\sim{p_{z}}, y\sim{p_{data}}}\left[\min\left(0, -1 - D\left(G\left(z\right), y\right)\right)\right]
+        # L_{G} = -\mathbb{E}_{z\sim{p_{z}}, y\sim{p_{data}}}D\left(G\left(z\right), y\right)
+        for scale_fake in D_fake_det:
+            loss_D += F.relu(1 + scale_fake[-1]).mean()
 
-        for scale in D_real:
-            loss_D += F.relu(1 - scale[-1]).mean()
+        for scale_real in D_real:
+            loss_D += F.relu(1 - scale_real[-1]).mean()
 
         optimizer_d.zero_grad()
         self.manual_backward( loss_D )
@@ -249,43 +259,7 @@ class AudioVisualModel(pl.LightningModule):
 
         }
         self.post_process(x_pred_t, x_t, s_t, s_pred_t, ibm, losses, trainval = "train")
-
-    def post_process(self, x_pred_t, x_t, s_t, s_pred_t, ibm, losses, trainval = "train"):
-        scores = self.metrics(x_pred_t, x_t)
-
-        self.log(f"{trainval}/stoi", scores["stoi"], on_step=False, on_epoch=True, logger=True, sync_dist= False, rank_zero_only = False)
-
-        if self.global_step %2 == 0:
-            step = self.global_step
-            writer = self.logger.experiment
-
-
-            for k in scores.keys():
-                writer.add_scalar(f'train/{k}', scores[k], step)
-
-            for k in losses.keys():
-                writer.add_scalar(f'train/{k}', losses[k].cpu().item(), step)
-
-
-
-
-            writer.add_audio('train_aud/pred', x_pred_t[0].reshape(-1, 1), global_step=step, sample_rate=self.args.sampling_rate)
-            writer.add_audio('train_aud/target', x_t[0].reshape(-1, 1), global_step=step, sample_rate=self.args.sampling_rate)
-
-            fig, AX = plt.subplots(3, min(s_t.shape[0]+1, 2), figsize = (12, 8), sharex=True, sharey=True)
-
-            for i in range(min(s_t.shape[0], 2)):
-                AX[0, i].imshow(s_t[i].detach().cpu(), aspect="auto", origin='lower')
-                AX[1, i].imshow(ibm[i].detach().cpu(), aspect="auto", origin='lower', cmap = "gray")
-                AX[2, i].imshow(s_pred_t[i].detach().cpu(), aspect="auto", origin='lower')
-
-            ylabels = ["Target", "Ideal Binary Mask", "Predicted"]
-            for i in range(3):
-                AX[i, 0].set_ylabel( ylabels[i] )
-
-            writer.add_figure("MelSpec", figure = fig, global_step = step )
-
-
+        
     def validation_step(self, batch_inp, batch_idx):
         x_t = batch_inp["audio"][:, 0, ]
 
@@ -303,8 +277,51 @@ class AudioVisualModel(pl.LightningModule):
         x_t = x_t[..., :N]
         x_pred_t = x_pred_t[..., :N]
 
-        losses = {}
+        losses = {
+            "mel_reconstruction": s_error,
+        }
         self.post_process(x_pred_t, x_t, s_t, s_pred_t, ibm, losses, trainval = "val")
+
+    def post_process(self, x_pred_t, x_t, s_t, s_pred_t, ibm, losses, trainval = "train"):
+        
+
+        if self.logger_step % 100 == 0:
+            scores = self.metrics(x_pred_t, x_t)
+            
+            
+            self.log(f"{trainval}/stoi", scores["stoi"], on_step=False, on_epoch=True, logger=True, sync_dist= False, rank_zero_only = False)
+        
+            step = self.global_step
+            writer = self.logger.experiment
+            writer.add_scalar('Epoch', self.current_epoch, step,)
+
+
+            for k in scores.keys():
+                writer.add_scalar(f"{trainval}/{k}", scores[k], step)
+
+            for k in losses.keys():
+                writer.add_scalar( f"{trainval}/{k}" , losses[k].cpu().item(), step)
+
+            writer.add_audio(f"{trainval}_aud/pred", x_pred_t[0].reshape(-1, 1), global_step=step, sample_rate=self.args.sampling_rate)
+            writer.add_audio(f"{trainval}_aud/target", x_t[0].reshape(-1, 1), global_step=step, sample_rate=self.args.sampling_rate)
+
+            fig, AX = plt.subplots(3, min(s_t.shape[0]+1, 2), figsize = (12, 8), sharex=True, sharey=True)
+
+            for i in range(min(s_t.shape[0], 2)):
+                AX[0, i].imshow(s_t[i].detach().cpu(), aspect="auto", origin='lower')
+                AX[1, i].imshow(ibm[i].detach().cpu(), aspect="auto", origin='lower', cmap = "gray")
+                AX[2, i].imshow(s_pred_t[i].detach().cpu(), aspect="auto", origin='lower')
+
+            ylabels = ["Target", "Ideal Binary Mask", "Predicted"]
+            for i in range(3):
+                AX[i, 0].set_ylabel( ylabels[i] )
+
+            writer.add_figure(f"{trainval}/MelSpec", figure = fig, global_step = step )
+            
+        self.logger_step += 1
+
+
+    
 
 
 
@@ -366,13 +383,13 @@ def main(args):
 
 
     checkpoint_callback = ModelCheckpoint(
-        monitor='va;/stoi',
+        monitor='val/stoi',
         save_on_train_epoch_end = False, # does checkpointing at teh end of validation step (False) or training epoch (True)
         save_last= True,
         every_n_epochs=args.check_val_every_n_epoch,
         mode= 'max',
         save_top_k = 1,
-        filename= "{epoch:02d}-{loss:.2f}",
+        filename= "{epoch:02d}-{val/stoi:.2f}",
         dirpath='./checkpoints/',
         )
     checkpoint_callback.CHECKPOINT_NAME_LAST = args.exp_name + "-last"
@@ -445,7 +462,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Speech Separation")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--ckpt_path", type=str, default='last')
-    parser.add_argument("--start_from_beginning", type=int, default= 0)
+    parser.add_argument("--start_from_beginning", type=str2bool, default= 0)
 
     parser = pl.Trainer.add_argparse_args(parser)
 

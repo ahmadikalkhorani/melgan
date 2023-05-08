@@ -34,6 +34,7 @@ class Audio2Mel(nn.Module):
         mel_fmin=0.0,
         mel_fmax=None,
     ):
+        
         super().__init__()
         ##############################################
         # FFT Parameters                              #
