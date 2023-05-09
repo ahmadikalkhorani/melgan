@@ -10,10 +10,8 @@ import torch
 import torchaudio.transforms as Ta
 print("CUDA is Available: ", torch.cuda.is_available())
 import argparse
-import av
 import numpy as np
 import torch
-import speechmetrics
 
 def str2list(v: str):
     return eval(v)
