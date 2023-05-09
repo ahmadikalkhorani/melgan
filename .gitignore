@@ -1,4 +1,6 @@
 lightning_logs
 checkpoints
+__pycache__
 *.log
 *.out
+*.pyc
