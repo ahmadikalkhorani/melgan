@@ -346,11 +346,12 @@ class Decoder(nn.Module):
             nn.BatchNorm2d(32),
             nn.LeakyReLU(0.2),
             nn.Conv2d(32, 1, 1, 1, 0),
-            nn.Tanh()
+            # nn.Tanh()
+            nn.ReLU()
         )
 
         # bottleneck blocks
-        self.decode.append(GenResBlk(512 + 128, 512))    # 20,T
+        self.decode.append(GenResBlk(512 + 128 * 0, 512))    # 20,T
         self.decode.append(GenResBlk(512, 256))
         self.decode.append(GenResBlk(256, 256))
 
@@ -373,9 +374,9 @@ class Decoder(nn.Module):
     def forward(self, s, x, len):
         # s: B,512,T x: B,T,512
         s = s.transpose(1, 2).contiguous()
-        n = torch.randn([x.size(0), 128, 20, x.size(1)]).type_as(s)  # B,128,20,T
+        # n = torch.randn([x.size(0), 128, 20, x.size(1)]).type_as(s)  # B,128,20,T
         x = x.transpose(1, 2).contiguous().unsqueeze(2).repeat(1, 1, 20, 1)  # B, 512, 20, T
-        x = torch.cat([x, n], 1)
+        # x = torch.cat([x, n], 1)
         for block in self.decode:
             x = block(x)
         for block in self.g1:
@@ -540,6 +541,7 @@ class Visual_front(nn.Module):
         phon, sent = phons.permute(1, 0, 2), sentence
         
         mel = self.gen(sent, phon, torch.tensor([T]).repeat(B)).squeeze(-3)
+        
         
 
 

@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torch
 from librosa.filters import mel as librosa_mel_fn
 from torch.nn.utils import weight_norm
+# import torch.nn.utils.spectral_norm as weight_norm # Vahid
 import numpy as np
 
 
@@ -33,6 +34,7 @@ class Audio2Mel(nn.Module):
         n_mel_channels=80,
         mel_fmin=0.0,
         mel_fmax=None,
+        mel = True,
     ):
         
         super().__init__()
@@ -52,6 +54,8 @@ class Audio2Mel(nn.Module):
         self.sampling_rate = sampling_rate
         self.n_mel_channels = n_mel_channels
         
+        self.mel = mel
+        
 
     def forward(self, audio):
         p = (self.n_fft - self.hop_length) // 2
@@ -66,7 +70,10 @@ class Audio2Mel(nn.Module):
         )
         real_part, imag_part = fft.unbind(-1)
         magnitude = torch.sqrt(real_part ** 2 + imag_part ** 2)
-        mel_output = torch.matmul(self.mel_basis, magnitude)
+        if self.mel:
+            mel_output = torch.matmul(self.mel_basis, magnitude)
+        else:
+            mel_output = magnitude
         log_mel_spec = torch.log10(torch.clamp(mel_output, min=1e-5))
         
      

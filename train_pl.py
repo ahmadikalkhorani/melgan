@@ -91,7 +91,7 @@ class AudioVisualModel(pl.LightningModule):
         self.netD = Discriminator(args.num_D, args.ndf, args.n_layers_D, args.downsamp_factor)
         self.fft = nn.Sequential(
             torchaudio.transforms.Resample(orig_freq=args.sampling_rate, new_freq=22050,),
-            Audio2Mel(n_mel_channels=args.n_mel_channels,)
+            Audio2Mel(n_mel_channels=args.n_mel_channels, mel = args.mel)
         )
 
         # netG.load_state_dict(torch.load("./models/multi_speaker.pt", map_location = "cpu"))
@@ -125,6 +125,8 @@ class AudioVisualModel(pl.LightningModule):
         parser.add_argument("--noise_db_bounds", type=str2list, default='(-2.5, 2.5)')
         parser.add_argument("--noise_db_bounds_test", type=str2list, default='(-2.5, 2.5)')
         parser.add_argument("--denoise_audio", type=str2bool, default='False')
+        
+        parser.add_argument("--mel", type=str2bool, default='True')
 
         parser.add_argument("--n_mel_channels", type=int, default=80)
         parser.add_argument("--ngf", type=int, default=32)
@@ -161,8 +163,12 @@ class AudioVisualModel(pl.LightningModule):
         s_t = self.fft(x_t).detach()
 
         # Ideal Binary Mask
-        s_t = torch.sign(s_t+1)
-        x_pred_t = self.netG(s_t)
+        if self.args.mel:
+            threshold = 1 
+        else:
+            threshold = 0
+        ibm = torch.sign(s_t+threshold) # anything larget than -1 is +1 else 0
+        x_pred_t = self.netG(ibm)
 
         with torch.no_grad():
             s_pred_t = self.fft(x_pred_t.detach())
@@ -182,7 +188,11 @@ class AudioVisualModel(pl.LightningModule):
         s_t = self.fft(x_t).detach()
 
         # Ideal Binary Mask
-        ibm = torch.sign(s_t+1) # anything larget than -1 is +1 else 0
+        if self.args.mel:
+            threshold = 1 
+        else:
+            threshold = 0
+        ibm = torch.sign(s_t+threshold) # anything larget than -1 is +1 else 0
         x_pred_t = self.netG(ibm)
 
         with torch.no_grad():
@@ -266,7 +276,11 @@ class AudioVisualModel(pl.LightningModule):
         s_t = self.fft(x_t).detach()
 
         # Ideal Binary Mask
-        ibm = torch.sign(s_t+1)
+        if self.args.mel:
+            threshold = 1 
+        else:
+            threshold = 0
+        ibm = torch.sign(s_t+threshold) # anything larget than -1 is +1 else 0
         x_pred_t = self.netG(ibm)
 
         with torch.no_grad():

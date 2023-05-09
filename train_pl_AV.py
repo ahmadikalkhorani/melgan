@@ -96,8 +96,10 @@ class AudioVisualModel(pl.LightningModule):
 
         # netG.load_state_dict(torch.load("./models/multi_speaker.pt", map_location = "cpu"))
         from mel2wav.visual import Visual_front
+        # from mel2wav.lip2wav import Encoder3D
         
         self.v_front = Visual_front(in_channels=3, duration = args.duration, sr = args.sampling_rate, fps = 25)
+        # self.v_front = Encoder3D(num_out_feat = 80, encoder_embedding_dim = 384, duration = args.duration, fps = 25, sr = args.sampling_rate,)
 
         self.netG = nn.Sequential(
             
@@ -182,21 +184,30 @@ class AudioVisualModel(pl.LightningModule):
         v_t = batch_inp["video"][:, 0, ]
         
    
-        optimizer_g, optimizer_d = self.optimizers()
+        optimizer_g, optimizer_d, optimizer_v = self.optimizers()
         # lrscheduler_g, lrscheduler_d = self.lr_schedulers()
+        # lrscheduler_g.step()
+        # lrscheduler_d.step
 
         s_t = self.fft(x_t).detach()
 
         # Ideal Binary Mask
-        # ibm = torch.sign(s_t+1) # anything larget than -1 is +1 else 0
+        ibm = torch.sign(s_t+1) # anything larget than -1 is +1 else 0
         mel_noisy = self.fft(batch_inp["audio"][:, -1, ...])
         mel_v = self.v_front({"mel_noisy": mel_noisy, "video": v_t})
-        x_pred_t = self.netG(mel_v) # passing the noisy singal mel as well
+        
+        
+        # optimizer_v.zero_grad()
+        # loss_V = F.l1_loss(s_t, mel_v.detach())
+        # self.manual_backward( loss_V )
+        # optimizer_v.step()
+        
+        
+        x_pred_t = self.netG(mel_v.detach()) # passing the noisy singal mel as well
 
         with torch.no_grad():
             s_pred_t = self.fft(x_pred_t.detach())
-            # s_error = F.l1_loss(s_t, s_pred_t)
-        s_error = F.l1_loss(s_t, s_pred_t)
+            s_error = F.l1_loss(s_t, s_pred_t)
 
         N = min(x_pred_t.shape[-1], x_t.shape[-1])
         x_t = x_t[..., :N]
@@ -208,18 +219,21 @@ class AudioVisualModel(pl.LightningModule):
         # Train Discriminator #
         #######################
         self.toggle_optimizer(optimizer = optimizer_d, optimizer_idx = 1)
+        
+        n1 = (torch.randn_like(x_pred_t) * 0.01).type_as(x_pred_t)
+        n2 = (torch.randn_like(x_pred_t) * 0.01).type_as(x_pred_t)
 
-        D_fake_det = self.netD(x_pred_t.detach())
-        D_real = self.netD(x_t)
+        D_fake_det = self.netD(x_pred_t.detach() + n1)
+        D_real = self.netD(x_t + n2)
 
         loss_D = 0
         # L_{D} = -\mathbb{E}_{\left(x, y\right)\sim{p}_{data}}\left[\min\left(0, -1 + D\left(x, y\right)\right)\right] -\mathbb{E}_{z\sim{p_{z}}, y\sim{p_{data}}}\left[\min\left(0, -1 - D\left(G\left(z\right), y\right)\right)\right]
         # L_{G} = -\mathbb{E}_{z\sim{p_{z}}, y\sim{p_{data}}}D\left(G\left(z\right), y\right)
         for scale_fake in D_fake_det:
-            loss_D += F.relu(1 + scale_fake[-1]).mean()
+            loss_D += F.relu(1.0 + scale_fake[-1]).mean()
 
         for scale_real in D_real:
-            loss_D += F.relu(1 - scale_real[-1]).mean()
+            loss_D += F.relu(1.0 - scale_real[-1]).mean()
 
         optimizer_d.zero_grad()
         self.manual_backward( loss_D )
@@ -247,7 +261,8 @@ class AudioVisualModel(pl.LightningModule):
 
 
         optimizer_g.zero_grad()
-        self.manual_backward(loss_G + self.args.lambda_feat * loss_feat + s_error)
+        loss_v = F.l1_loss(s_t, mel_v.detach())
+        self.manual_backward(loss_G + self.args.lambda_feat * loss_feat + loss_v )
         optimizer_g.step()
         self.untoggle_optimizer(optimizer_g)
 
@@ -261,6 +276,7 @@ class AudioVisualModel(pl.LightningModule):
 
         losses = {
             "loss": loss,
+            "loss_v": loss_v,
             "discriminator": loss_D,
             "generator": loss_G,
             "feature_matching": loss_feat,
@@ -268,6 +284,16 @@ class AudioVisualModel(pl.LightningModule):
 
         }
         self.post_process(x_pred_t, x_t, s_t, s_pred_t, mel_v, losses, trainval = "train")
+        
+        # losses = {
+        #     "loss": loss_V,
+        #     "discriminator": loss_V,
+        #     "generator": loss_V,
+        #     "feature_matching": loss_V,
+        #     "mel_reconstruction": loss_V,
+
+        # }
+        # self.post_process(x_t * 0.001 , x_t, s_t, mel_v, ibm, losses, trainval = "train")
         
     def validation_step(self, batch_inp, batch_idx):
         x_t = batch_inp["audio"][:, 0, ] # clean singal
@@ -297,7 +323,7 @@ class AudioVisualModel(pl.LightningModule):
     def post_process(self, x_pred_t, x_t, s_t, s_pred_t, ibm, losses, trainval = "train"):
         
 
-        if self.logger_step % 100 == 0:
+        if self.logger_step % 20 == 0:
             scores = self.metrics(x_pred_t, x_t)
             
             
@@ -317,15 +343,24 @@ class AudioVisualModel(pl.LightningModule):
             writer.add_audio(f"{trainval}_aud/pred", x_pred_t[0].reshape(-1, 1), global_step=step, sample_rate=self.args.sampling_rate)
             writer.add_audio(f"{trainval}_aud/target", x_t[0].reshape(-1, 1), global_step=step, sample_rate=self.args.sampling_rate)
 
-            fig, AX = plt.subplots(3, min(s_t.shape[0]+1, 2), figsize = (12, 8), sharex=True, sharey=True)
+            fig, AX = plt.subplots(5, min(s_t.shape[0]+1, 2), figsize = (12, 8), sharex=False, sharey=False)
             for i in range(min(s_t.shape[0], 2)):
-                AX[0, i].imshow(s_t[i].detach().cpu(), aspect="auto", origin='lower')
-                AX[1, i].imshow(ibm[i].detach().cpu(), aspect="auto", origin='lower',)
-                AX[2, i].imshow(s_pred_t[i].detach().cpu(), aspect="auto", origin='lower')
+                AX[0, i].imshow(ibm[i].detach().cpu(), aspect="auto", origin='lower',)
+                
+                AX[1, i].imshow(s_pred_t[i].detach().cpu(), aspect="auto", origin='lower')
+                AX[2, i].plot(x_pred_t.flatten().detach().cpu())
+                AX[2, i].set_xticklabels([])
+                
+                AX[3, i].imshow(s_t[i].detach().cpu(), aspect="auto", origin='lower')
+                AX[4, i].plot(x_t.flatten().detach().cpu())
+                AX[4, i].set_xticklabels([])
 
-            ylabels = ["Target", "Video Features", "Predicted"]
-            for i in range(3):
+
+            ylabels = ["Video Features", "Predicted", "Target", "Predicted", "Target", ]
+            for i in range(len(ylabels)):
                 AX[i, 0].set_ylabel( ylabels[i] )
+            
+            plt.tight_layout()
 
             writer.add_figure(f"{trainval}/MelSpec", figure = fig, global_step = step )
             
@@ -341,13 +376,18 @@ class AudioVisualModel(pl.LightningModule):
         from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingWarmRestarts
         from torch.optim import Adam
 
-        optG = torch.optim.Adam([{"params": self.netG.parameters()}, {"params": self.v_front.parameters()}], lr=1e-4, betas=(0.5, 0.9))
+        optV = torch.optim.Adam(self.v_front.parameters(), lr=1e-4,)
+        schV = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optV, T_0=1000, T_mult=1, eta_min=1E-6, last_epoch=-1)
+        
+        
+        optG = torch.optim.Adam([{"params": self.netG.parameters()},{"params": self.v_front.parameters()}], lr=1e-4, betas=(0.5, 0.9))
+        schG = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optG, T_0=1000, T_mult=1, eta_min=1E-6, last_epoch=-1)
         # schG = ReduceLROnPlateau(optG, factor  = 0.85, patience = 3, verbose = True)
 
         optD = torch.optim.Adam(self.netD.parameters(), lr=1e-4, betas=(0.5, 0.9))
-        # schD = ReduceLROnPlateau(optD, factor  = 0.85, patience = 3, verbose = True)
+        schD = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optG, T_0=1000, T_mult=1, eta_min=1E-6, last_epoch=-1)
 
-        return [optG, optD], []
+        return [optG, optD, optV], [schG, schD, schV]
 
         # return ({
         #     "optimizer": optG,
@@ -454,6 +494,7 @@ def main(args):
                 print('loaded params/tot params:{}/{}'.format(len(pretrained_dict),len(model_dict)))
                 if len(missed_params) > 0:
                     print('First 10 missed_params: \n', missed_params[:10])
+                    print('Last 10 missed_params: \n', missed_params[-10:])
                 # print('miss matched params:',missed_params)
                 model.load_state_dict(model_dict)
 
